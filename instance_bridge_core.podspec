@@ -19,8 +19,8 @@ A plugin bridge for managing instances.
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
   # ✅ 平台设置
-  s.ios.platform = :ios, '12.0'
-  s.osx.platform = :osx, '10.11'
+  s.ios.deployment_target  = '12.0'
+  s.osx.deployment_target  = '10.11'
   # ✅ 依赖
   s.ios.dependency 'Flutter'
   s.osx.dependency 'FlutterMacOS'
