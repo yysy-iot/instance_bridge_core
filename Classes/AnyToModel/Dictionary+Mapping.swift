@@ -4,8 +4,7 @@
 //  Created by LCR on 2022/7/7.
 //
 
-import Flutter
-
+import Foundation
 
 ///
 public extension Dictionary where Key == String, Value == Any {
