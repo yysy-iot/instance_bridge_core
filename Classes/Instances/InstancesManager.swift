@@ -22,7 +22,7 @@ public enum InstancesManager {
     
     // MARK: -
     
-    static func initChannel(_ messenger: FlutterBinaryMessenger) {
+    public static func initChannel(_ messenger: FlutterBinaryMessenger) {
         _channel = .init(name: "MixInstances", binaryMessenger: messenger)
         _channel.setMethodCallHandler(callHandler)
     }
