@@ -87,9 +87,9 @@ extension FlutterRequester {
     
     ///
     public func perform(flutter method: String,
-                        arguments: [String: Any],
+                        value: [String: Any],
                         onResult: ((Any?) -> Void)? = nil,
                         onError: ((Error) -> Void)? = nil) {
-        perform(method, arguments, onResult, onError)
+        perform(method, value, onResult, onError)
     }
 }
