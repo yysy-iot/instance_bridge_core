@@ -5,29 +5,32 @@
 //
 
 import Foundation
-//import Flutter
 
 public protocol AnyMixCallHandler {
     
     func callHandler(_ arguments: Any?, _ success: @escaping (Any) -> Void, _ failure: @escaping (Error) -> Void)
+    
+    @available(iOS 13.0.0, *)
+    @MainActor
+    func callHandler(_ arguments: Any?) async throws -> Any
 }
 
 ///
-public typealias CastFrom<T> = (Any?) throws -> T?
+public typealias CastFrom<T> = @Sendable (Any?) throws -> T?
 ///
-typealias AnyHandler<T> = (T?, @escaping (Any) -> Void, @escaping (Error) -> Void) -> Void
+typealias AnyHandler<T> = @Sendable @MainActor (T?, @escaping (Any) -> Void, @escaping (Error) -> Void) -> Void
 ///
-public typealias COOHandler<T, R> = (T?, @escaping (R?) -> Void, @escaping (Error) -> Void) -> Void
+public typealias COOHandler<T, R> = @MainActor @Sendable(T?, @escaping (R?) -> Void, @escaping (Error) -> Void) -> Void
 ///
-public typealias CIOHandler<T, R> = (T, @escaping (R?) -> Void, @escaping (Error) -> Void) -> Void
+public typealias CIOHandler<T, R> = @MainActor @Sendable(T, @escaping (R?) -> Void, @escaping (Error) -> Void) -> Void
 ///
-public typealias COVHandler<T> = (T?, @escaping () -> Void, @escaping (Error) -> Void) -> Void
+public typealias COVHandler<T> = @MainActor @Sendable (T?, @escaping () -> Void, @escaping (Error) -> Void) -> Void
 ///
-public typealias CIVHandler<T> = (T, @escaping () -> Void, @escaping (Error) -> Void) -> Void
+public typealias CIVHandler<T> = @MainActor @Sendable (T, @escaping () -> Void, @escaping (Error) -> Void) -> Void
 ///
-public typealias VOHandler<R> = (@escaping (R?) -> Void, @escaping (Error) -> Void) -> Void
+public typealias VOHandler<R> = @MainActor @Sendable (@escaping (R?) -> Void, @escaping (Error) -> Void) -> Void
 ///
-public typealias VVHandler = (@escaping () -> Void, @escaping (Error) -> Void) -> Void
+public typealias VVHandler = @MainActor @Sendable (@escaping () -> Void, @escaping (Error) -> Void) -> Void
 
 public struct MixCallHandler<T, R>: AnyMixCallHandler {
     
@@ -177,16 +180,37 @@ public struct MixCallHandler<T, R>: AnyMixCallHandler {
     
     
     // MARK: - AnyMixCallHandler
-    
-    
-    public func callHandler(_ arguments: Any?,
-                            _ success: @escaping (Any) -> Void,
-                            _ failure: @escaping (Error) -> Void) {
+    @MainActor
+    private func _callHandler(_ arguments: Any?,
+                              _ success: @escaping (Any) -> Void,
+                              _ failure: @escaping (Error) -> Void) {
         do {
             let arguments = try castFrom(arguments)
             handler(arguments, success, failure)
         } catch {
             failure(error)
+        }
+    }
+    
+    public func callHandler(_ arguments: Any?, _ success: @escaping (Any) -> Void, _ failure: @escaping (any Error) -> Void) {
+        if #available(iOS 13.0, *), Thread.isMainThread {
+            MainActor.assumeIsolated {
+                _callHandler(arguments, success, failure)
+            }
+        } else {
+            DispatchQueue.main.async {
+                _callHandler(arguments, success, failure)
+            }
+        }
+    }
+    
+    @available(iOS 13.0.0, *)
+    @MainActor
+    public func callHandler(_ arguments: Any?) async throws -> Any {
+        try await withCheckedThrowingContinuation { continuation in
+            _callHandler(arguments, {
+                continuation.resume(returning: $0)
+            }, continuation.resume(throwing:))
         }
     }
 }

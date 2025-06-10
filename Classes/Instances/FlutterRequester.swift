@@ -92,4 +92,13 @@ extension FlutterRequester {
                         onError: ((Error) -> Void)? = nil) {
         perform(method, value, onResult, onError)
     }
+    
+    
+    ///
+    public func perform(flutter method: String,
+                        value: Data,
+                        onResult: ((Any?) -> Void)? = nil,
+                        onError: ((Error) -> Void)? = nil) {
+        perform(method, value, onResult, onError)
+    }
 }
