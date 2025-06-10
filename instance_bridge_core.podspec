@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'instance_bridge_core'
-  s.version          = '0.0.6'
+  s.version          = '0.0.7'
   s.summary          = 'Flutter plugin bridge.'
   s.description      = <<-DESC
 A plugin bridge for managing instances.
@@ -19,7 +19,7 @@ A plugin bridge for managing instances.
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
   # ✅ 平台设置
-  s.ios.deployment_target  = '12.0'
+  s.ios.deployment_target  = '13.0'
   s.osx.deployment_target  = '10.15'
   # ✅ 依赖
   s.ios.dependency 'Flutter'
