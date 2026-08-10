@@ -146,6 +146,7 @@ public enum InstancesManager {
         voidSuccess(result)()
     }
     
+    @MainActor
     private static func destroy(_ arguments: Any?, _ result: @escaping FlutterResult) {
         guard let arguments = arguments as? [String: Any],
               let typeName = arguments["typeName"] as? String,
