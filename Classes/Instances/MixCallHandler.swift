@@ -208,9 +208,25 @@ public struct MixCallHandler<T, R>: AnyMixCallHandler {
     @MainActor
     public func callHandler(_ arguments: Any?) async throws -> Any {
         try await withCheckedThrowingContinuation { continuation in
+            // 使用锁保护确保 continuation 只被 resume 一次，防止 handler 多次回调导致未定义行为
+            let lock = NSLock()
+            var hasResumed = false
+            
             _callHandler(arguments, {
-                continuation.resume(returning: $0)
-            }, continuation.resume(throwing:))
+                lock.lock()
+                defer { lock.unlock() }
+                if !hasResumed {
+                    hasResumed = true
+                    continuation.resume(returning: $0)
+                }
+            }, {
+                lock.lock()
+                defer { lock.unlock() }
+                if !hasResumed {
+                    hasResumed = true
+                    continuation.resume(throwing: $0)
+                }
+            })
         }
     }
 }
@@ -236,7 +252,7 @@ private func encodeResult<R: Encodable>(_ onResult: @escaping (Any?) -> Void,
 ///
 private func optAnyCastFrom<T>() -> CastFrom<T> {
     {
-        if $0 == nil { return nil }
+        if $0 == nil || $0 is NSNull { return nil }
         if $0 is T { return $0 as? T }
         throw FlutterRequestError.invalidArgument
     }

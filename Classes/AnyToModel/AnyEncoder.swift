@@ -20,7 +20,7 @@ public struct AnyEncoder {
 private struct AnyImplEncoder: Encoder {
     
     
-    fileprivate final class Data {
+    fileprivate final class EncoderData {
         
         private var obj: NSCoding?
         
@@ -34,14 +34,14 @@ private struct AnyImplEncoder: Encoder {
     }
     
     
-    fileprivate let data: Data
+    fileprivate let data: EncoderData
     
     let codingPath: [CodingKey]
     
     let userInfo: [CodingUserInfoKey : Any] = [:]
     
     
-    init(to data: Data = Data(), codingPath: [CodingKey] = []) {
+    init(to data: EncoderData = EncoderData(), codingPath: [CodingKey] = []) {
         self.data = data
         self.codingPath = codingPath
     }
@@ -66,17 +66,19 @@ private struct AnyImplEncoder: Encoder {
 /// 键值对编码
 private struct DictionaryKeyedEncoding<Key: CodingKey>: KeyedEncodingContainerProtocol {
     
-    private let data: AnyImplEncoder.Data
+    private let data: AnyImplEncoder.EncoderData
     private let container: NSMutableDictionary
     let codingPath: [CodingKey]
     
-    init(to data: AnyImplEncoder.Data, codingPath: [CodingKey], container: NSMutableDictionary) {
+    init(to data: AnyImplEncoder.EncoderData, codingPath: [CodingKey], container: NSMutableDictionary) {
         self.data = data
         self.codingPath = codingPath
         self.container = container
     }
     
-    mutating func encodeNil(forKey key: Key) throws { }
+    mutating func encodeNil(forKey key: Key) throws {
+        container[key.stringValue] = NSNull()
+    }
     
     mutating func encode(_ value: Bool, forKey key: Key) throws {
         container[key.stringValue] = NSNumber(value: value)
@@ -165,11 +167,11 @@ private struct DictionaryKeyedEncoding<Key: CodingKey>: KeyedEncodingContainerPr
 /// 数组编码
 fileprivate struct DictionaryUnkeyedEncoding: UnkeyedEncodingContainer {
     
-    private let data: AnyImplEncoder.Data
+    private let data: AnyImplEncoder.EncoderData
     private let container: NSMutableArray
     let codingPath: [CodingKey]
     
-    init(to data: AnyImplEncoder.Data, codingPath: [CodingKey], container: NSMutableArray) {
+    init(to data: AnyImplEncoder.EncoderData, codingPath: [CodingKey], container: NSMutableArray) {
         self.data = data
         self.container = container
         self.codingPath = codingPath
@@ -178,6 +180,7 @@ fileprivate struct DictionaryUnkeyedEncoding: UnkeyedEncodingContainer {
     private(set) var count: Int = 0
     
     mutating func encodeNil() throws {
+        container.add(NSNull())
         count += 1
     }
     
@@ -187,7 +190,7 @@ fileprivate struct DictionaryUnkeyedEncoding: UnkeyedEncodingContainer {
     }
     
     mutating func encode(_ value: String) throws {
-        container.add(value as NSString)
+        container.add(value)
         count += 1
     }
     
@@ -281,10 +284,10 @@ fileprivate struct DictionaryUnkeyedEncoding: UnkeyedEncodingContainer {
 ///
 fileprivate struct DictionarySingleValueEncoding: SingleValueEncodingContainer {
     
-    private let data: AnyImplEncoder.Data
+    private let data: AnyImplEncoder.EncoderData
     let codingPath: [CodingKey]
     
-    init(to data: AnyImplEncoder.Data, codingPath: [CodingKey]) {
+    init(to data: AnyImplEncoder.EncoderData, codingPath: [CodingKey]) {
         self.data = data
         self.codingPath = codingPath
     }

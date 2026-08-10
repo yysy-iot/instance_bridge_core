@@ -180,7 +180,7 @@ private class AnyImplDecoder : Decoder {
             throw DecodingError.dcTypeMismatch(at: codingPath, expectation: [Any].self, reality: storage.topContainer)
         }
         
-        return _JSONUnkeyedDecodingContainer(referencing: self, wrapping: topContainer)
+        return _AnyUnkeyedDecodingContainer(referencing: self, wrapping: topContainer)
     }
     
     public func singleValueContainer() throws -> SingleValueDecodingContainer {
@@ -527,7 +527,7 @@ private struct _AnyKeyedDecodingContainer<K : CodingKey> : KeyedDecodingContaine
             throw DecodingError.dcTypeMismatch(at: codingPath, expectation: [Any].self, reality: value)
         }
         
-        return _JSONUnkeyedDecodingContainer(referencing: decoder, wrapping: array)
+        return _AnyUnkeyedDecodingContainer(referencing: decoder, wrapping: array)
     }
     
     private func _superDecoder(forKey key: __owned CodingKey) throws -> Decoder {
@@ -547,7 +547,7 @@ private struct _AnyKeyedDecodingContainer<K : CodingKey> : KeyedDecodingContaine
     }
 }
 
-private struct _JSONUnkeyedDecodingContainer : UnkeyedDecodingContainer {
+private struct _AnyUnkeyedDecodingContainer : UnkeyedDecodingContainer {
     // MARK: Properties
     /// A reference to the decoder we're reading from.
     private let decoder: AnyImplDecoder
@@ -880,7 +880,7 @@ private struct _JSONUnkeyedDecodingContainer : UnkeyedDecodingContainer {
         }
         
         currentIndex += 1
-        return _JSONUnkeyedDecodingContainer(referencing: decoder, wrapping: array)
+        return _AnyUnkeyedDecodingContainer(referencing: decoder, wrapping: array)
     }
     
     public mutating func superDecoder() throws -> Decoder {
@@ -1327,7 +1327,9 @@ private extension AnyImplDecoder {
         if let decimal = value as? Decimal {
             return decimal
         } else {
-            let doubleValue = try self.unbox(value, as: Double.self)!
+            guard let doubleValue = try self.unbox(value, as: Double.self) else {
+                return nil
+            }
             return Decimal(doubleValue)
         }
     }
@@ -1341,7 +1343,9 @@ private extension AnyImplDecoder {
         }
         let elementType = type.elementType
         for (key, value) in dict {
-            let key = key as! String
+            guard let key = key as? String else {
+                throw DecodingError.dcTypeMismatch(at: codingPath, expectation: String.self, reality: key)
+            }
             codingPath.append(_AnyDecoderKey(stringValue: key, intValue: nil))
             defer { codingPath.removeLast() }
             

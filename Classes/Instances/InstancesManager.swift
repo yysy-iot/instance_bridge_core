@@ -27,16 +27,19 @@ public enum InstancesManager {
         _channel.setMethodCallHandler(callHandler)
     }
     
+    @MainActor
     public static func register(type: FlutterResponder.Type) {
         let typeName = String(describing: type)
         register(typeName, with: type)
     }
     
+    @MainActor
     public static func register(_ typeName: String, with
                                 type: FlutterResponder.Type) {
         register(typeName, with: type.init)
     }
     
+    @MainActor
     public static func register(_ typeName: String, with
                                 builder: @escaping (Int64) -> FlutterResponder) {
         builderMap[typeName] = { hash, _ in
@@ -44,12 +47,14 @@ public enum InstancesManager {
         }
     }
     
+    @MainActor
     public static func register(_ typeName: String, with
                                 builder: @MainActor @escaping (Int64, Any) -> FlutterResponder) {
         builderMap[typeName] = builder
     }
     
     ///
+    @MainActor
     private static func find(_ typeName: String, hash: Int64) -> FlutterResponder? {
         let key = self.key(typeName, hash)
         return cachesMap[key]
@@ -67,6 +72,7 @@ public enum InstancesManager {
     
     ///
     @discardableResult
+    @MainActor
     private static func destroy(_ typeName: String, hash: Int64) -> FlutterResponder? {
         let key = self.key(typeName, hash)
         return cachesMap.removeValue(forKey: key)
