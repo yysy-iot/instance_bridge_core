@@ -1,12 +1,18 @@
 # AGENTS.md
 
 ## 项目概述
-`instance_bridge_core` 是 Flutter 插件桥接层（`get_instance_bridge`）的共享核心库，通过 CocoaPods 被 iOS/macOS 两个 Flutter 插件复用。仓库只有 `Classes/` 源码和 podspec，**没有 Xcode 工程、测试、Podfile**。
+`instance_bridge_core` 是 Flutter 插件桥接层（`get_instance_bridge`）的共享核心库，通过 CocoaPods 被 iOS/macOS 两个 Flutter 插件复用。仓库只有 `Sources/instance_bridge_core/` 源码、podspec 和 `Package.swift`（SPM），**没有 Xcode 工程、测试、Podfile**。
 
 ## 构建与发布
-- **验证**：`pod lib lint instance_bridge_core.podspec`
+- **验证**：`pod lib lint instance_bridge_core.podspec`；SPM 语法验证：`swift package dump-package`
 - **发布流程**：改 `s.version` → commit → 打同名 git tag（podspec 的 `s.source` 按 tag 拉取）→ push
-- 当前版本：0.0.7；历史 tag：0.0.1–0.0.7
+- 当前版本：0.0.8；历史 tag：0.0.1–0.0.8
+
+## SPM 支持（关键）
+- 根目录 `Package.swift`：swift-tools-version 5.9，依赖 `FlutterFramework`（`path: "../FlutterFramework"`）
+- 源码结构：`Sources/instance_bridge_core/`，公开 ObjC 头文件在 `include/`（`publicHeadersPath`）
+- `FlutterFramework` 是 Flutter 构建系统生成的本地包；远程 Git 消费时需消费者在 Xcode 中以本地包覆盖提供
+- podspec 的 `source_files`/`public_header_files` 与 SPM 目录保持一致
 
 ## 平台条件编译（关键）
 Flutter 相关代码必须按此模式导入：
