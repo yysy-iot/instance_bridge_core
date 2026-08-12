@@ -6,6 +6,12 @@
 
 import Foundation
 
+#if os(iOS)
+import Flutter
+#elseif os(macOS)
+import FlutterMacOS
+#endif
+
 public protocol AnyMixCallHandler {
     
     func callHandler(_ arguments: Any?, _ success: @escaping (Any) -> Void, _ failure: @escaping (Error) -> Void)

@@ -1,0 +1,23 @@
+name: instance_bridge_core
+description: "Shared native core library for the get_instance_bridge Flutter plugin."
+version: 0.0.10
+homepage: https://github.com/yysy-iot
+repository: https://github.com/yysy-iot/instance_bridge_core
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+# 本包是纯原生共享库（iOS/macOS Swift），无 Dart API。
+# 声明为 Flutter 插件是为了让 Flutter 工具链将其 symlink 到 .packages/，
+# 从而在 SPM 构建中能解析其 Package.swift 里的 "../FlutterFramework" 相对路径。
+flutter:
+  plugin:
+    platforms:
+      ios:
+        pluginClass: InstanceBridgeCorePlugin
+      macos:
+        pluginClass: InstanceBridgeCorePlugin

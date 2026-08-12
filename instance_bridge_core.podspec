@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'instance_bridge_core'
-  s.version          = '0.0.9'
+  s.version          = '0.0.10'
   s.summary          = 'Flutter plugin bridge.'
   s.description      = <<-DESC
 A plugin bridge for managing instances.
@@ -15,9 +15,9 @@ A plugin bridge for managing instances.
 
   s.source           = { :git => 'https://github.com/yysy-iot/instance_bridge_core.git', :tag => s.version.to_s }
 
-  # ✅ 共享源文件目录（可用于 iOS 和 macOS，与 SPM 的 Sources/instance_bridge_core 对应）
-  s.source_files = 'Sources/instance_bridge_core/**/*'
-  s.public_header_files = 'Sources/instance_bridge_core/include/**/*.h'
+  # ✅ 共享源文件目录（iOS 和 macOS 共用，与 SPM 的 Sources 目录一致）
+  s.source_files = 'Sources/instance_bridge_core/**/*', 'Sources/instance_bridge_core_objc/**/*'
+  s.public_header_files = 'Sources/instance_bridge_core_objc/include/**/*.h'
   # ✅ 平台设置
   s.ios.deployment_target  = '13.0'
   s.osx.deployment_target  = '10.15'
