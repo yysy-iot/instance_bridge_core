@@ -1,0 +1,9 @@
+# 内部开发文档，不进 pub 包
+AGENTS.md
+
+# 本地构建产物
+.dart_tool/
+pubspec.lock
+.build/
+.swiftpm/
+Pods/
