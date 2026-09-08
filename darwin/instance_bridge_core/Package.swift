@@ -6,6 +6,7 @@ import PackageDescription
 let package = Package(
     name: "instance_bridge_core",
     platforms: [
+        .iOS(.v13),
         .macOS(.v10_15)
     ],
     products: [
@@ -16,9 +17,10 @@ let package = Package(
         .library(name: "instance-bridge-core", targets: ["instance_bridge_core"])
     ],
     dependencies: [
-        // FlutterFramework 是 Flutter 构建系统生成的本地包。本包必须作为 Flutter 插件被
-        // symlink 到 .packages/（见根目录 pubspec.yaml 的 flutter.plugin 声明），
-        // 此相对路径才能解析到 .packages/FlutterFramework。
+        // FlutterFramework 是 Flutter 构建系统生成的本地包（.packages/FlutterFramework）。
+        // 本包声明了 flutter.plugin + sharedDarwinSource，会被 Flutter 工具链 symlink 到
+        // .packages/instance_bridge_core，此相对路径才能解析成功。
+        // 纯远程 Git 直接消费时，需由消费者在 Xcode 中以本地包覆盖（Local Package Override）提供。
         .package(name: "FlutterFramework", path: "../FlutterFramework")
     ],
     targets: [
@@ -32,7 +34,8 @@ let package = Package(
             path: "Sources/instance_bridge_core_objc",
             publicHeadersPath: "include"
         ),
-        // Swift 主实现。Sources 是指向根目录共享源码的 symlink（iOS/macOS 共用一份源码，条件编译）。
+        // Swift 主实现。源码物理位于本目录（darwin/instance_bridge_core/Sources/），
+        // iOS/macOS 通过 sharedDarwinSource 共用，条件编译区分平台。
         .target(
             name: "instance_bridge_core",
             dependencies: [

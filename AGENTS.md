@@ -1,28 +1,33 @@
 # AGENTS.md
 
 ## 项目概述
-`instance_bridge_core` 是 Flutter 插件桥接层（`get_instance_bridge`）的共享核心库，通过 CocoaPods 被 iOS/macOS 两个 Flutter 插件复用。仓库只有 `Sources/instance_bridge_core/` 源码、podspec、`Package.swift`（SPM）和 `pubspec.yaml`（插件声明），**没有 Xcode 工程、测试、Podfile**。
+`instance_bridge_core` 是 Flutter 插件桥接层（`get_instance_bridge`）的共享核心库，通过 CocoaPods / SPM 被 iOS/macOS 两个 Flutter 插件复用。仓库只有 `darwin/` 共享源码（podspec + `instance_bridge_core/Package.swift` + `Sources/`）、`lib/`（空 Dart 库）和 `pubspec.yaml`（插件声明），**没有 Xcode 工程、测试、Podfile**。
 
 ## 构建与发布
-- **验证**：`pod lib lint instance_bridge_core.podspec`；SPM 语法验证：`swift package dump-package`
+- **验证**：`pod lib lint darwin/instance_bridge_core.podspec`；SPM 语法验证：`cd darwin/instance_bridge_core && swift package dump-package`
 - **发布流程**：改 `s.version`（同步 `pubspec.yaml` 的 `version`）→ commit → 打同名 git tag（podspec 的 `s.source` 按 tag 拉取）→ push
-- 当前版本：0.0.10；历史 tag：0.0.1–0.0.9
+- 当前版本：0.0.13；历史 tag：0.0.1–0.0.12
 
-## 插件化声明（关键，0.0.10 起）
-- 根目录 `pubspec.yaml` 声明 `flutter.plugin`（ios/macos `pluginClass: InstanceBridgeCorePlugin`），使本包被 Flutter 工具链识别为插件
+## 插件化与共享源码（关键，0.0.13 起采用 sharedDarwinSource）
+- 根目录 `pubspec.yaml` 声明 `flutter.plugin`：ios/macos 均为 `pluginClass: InstanceBridgeCorePlugin` + `sharedDarwinSource: true`
 - **原因**：`get_instance_bridge` 通过 SPM 依赖本包时，本包必须被 Flutter symlink 到 `.packages/`，其 `Package.swift` 中的 `path: "../FlutterFramework"` 才能解析（非插件的独立 Swift 包无法通过 git 依赖接入 Flutter SPM 构建）
-- `Sources/instance_bridge_core/InstanceBridgeCorePlugin.swift` 是空实现：通道注册由宿主插件 `get_instance_bridge` 完成，本包不注册任何通道
+- 共享源码物理位于 `darwin/`（Flutter 官方 `sharedDarwinSource` 机制，工具链 `_darwinPluginDirectoryName` 返回 `darwin/`）
+- `darwin/instance_bridge_core/Sources/instance_bridge_core/InstanceBridgeCorePlugin.swift` 是空实现：通道注册由宿主插件 `get_instance_bridge` 完成，本包不注册任何通道
 - `lib/instance_bridge_core.dart` 是空 Dart 库（满足 pub 包规范），无 Dart API
 
+## CocoaPods 支持（关键）
+- podspec 位于 `darwin/instance_bridge_core.podspec`（`pluginPodspecPath` = `<path>/darwin/instance_bridge_core.podspec`）
+- **`source_files` 必须物理位于 pod root（`darwin/`）内，不能用符号链接**：CocoaPods 的 `PathList#read_file_system` 用 `Dir.glob('**/*')` 预收集文件，Ruby 的 `**` **不递归进入符号链接目录**。踩过的坑：`ios/instance_bridge_core/Sources -> ../../Sources` + `source_files = '../Sources/...'` 导致收集到 0 个源文件，pod target 退化成无源码的 `PBXAggregateTarget`，宿主 `import instance_bridge_core` 失败
+- `instance_bridge_core` 是 `get_instance_bridge` 的 pubspec 依赖（Flutter 插件），example 的 Podfile 由 `flutter_install_all_*_pods` 自动安装；**不要**在 Podfile 里手动 `pod 'instance_bridge_core', :git => ...`，否则报 "multiple dependencies with different sources"
+- 宿主插件 `get_instance_bridge` 的 podspec 通过 `s.dependency 'instance_bridge_core', '~> 0.0.13'` 约束版本
+
 ## SPM 支持（关键）
-- 平台清单：`ios/instance_bridge_core/Package.swift`（iOS 13.0）、`macos/instance_bridge_core/Package.swift`（macOS 10.15），均依赖 `FlutterFramework`（`path: "../FlutterFramework"`）
-- **Package.swift 必须位于 `ios/<name>/`、`macos/<name>/`**：Flutter 工具链 `pluginSwiftPackagePath` 硬编码该结构，找不到就不会生成 symlink
-- 共享源码用 symlink：`ios/instance_bridge_core/Sources` → `../../Sources`（ios/macos 共用一份源码，条件编译）
+- 单一清单：`darwin/instance_bridge_core/Package.swift`（同时声明 `.iOS(.v13)` 与 `.macOS(.v10_15)`）。Flutter 工具链对 ios/macos 两个平台都会解析到 `darwin/<name>/Package.swift`
+- **Package.swift 必须位于 `darwin/<name>/`**（sharedDarwinSource）或 `ios/<name>/`、`macos/<name>/`：`pluginSwiftPackagePath` 按此硬编码，找不到就不会生成 symlink
+- 源码物理位于 `darwin/instance_bridge_core/Sources/`（无符号链接，与 CocoaPods 要求一致）
 - Swift/ObjC 拆两个 target：SPM 不允许一个 target 混用两种语言；ObjC 在 `Sources/instance_bridge_core_objc/`（`instance_bridge_core_objc` target），Swift 侧通过 `#if canImport(instance_bridge_core_objc)` 条件 import（见 `ResultMapping.swift`）
 - product 双名：`instance_bridge_core`（宿主插件 manifest 引用）+ `instance-bridge-core`（Flutter 生成的 FlutterGeneratedPluginSwiftPackage 按插件名连字符化引用）
-- 根目录 `Package.swift`：独立包清单，保留用于非插件场景的 SPM 消费
 - `FlutterFramework` 是 Flutter 构建系统生成的本地包；本包必须作为 Flutter 插件被 symlink 消费（见上）
-- podspec 的 `source_files`/`public_header_files` 与 SPM 目录保持一致
 
 ## 平台条件编译（关键）
 Flutter 相关代码必须按此模式导入：
