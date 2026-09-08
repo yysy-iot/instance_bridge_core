@@ -10,20 +10,18 @@ Pod::Spec.new do |s|
 A plugin bridge for managing instances.
                        DESC
   s.homepage         = 'https://github.com/yysy-iot'
-  s.license          = { :type => 'MIT', :file => 'LICENSE' }
+  s.license          = { :type => 'MIT', :file => '../LICENSE' }
   s.author           = { 'YueYing Industry' => 'charlie@yueying-industry.com' }
 
   s.source           = { :git => 'https://github.com/yysy-iot/instance_bridge_core.git', :tag => s.version.to_s }
 
   # ✅ 共享源文件目录（iOS 和 macOS 共用，与 SPM 的 Sources 目录一致）
-  s.source_files = 'Sources/instance_bridge_core/**/*', 'Sources/instance_bridge_core_objc/**/*'
-  s.public_header_files = 'Sources/instance_bridge_core_objc/include/**/*.h'
+  s.source_files = '../Sources/instance_bridge_core/**/*', '../Sources/instance_bridge_core_objc/**/*'
+  s.public_header_files = '../Sources/instance_bridge_core_objc/include/**/*.h'
   # ✅ 平台设置
   s.ios.deployment_target  = '13.0'
-  s.osx.deployment_target  = '10.15'
   # ✅ 依赖
   s.ios.dependency 'Flutter'
-  s.osx.dependency 'FlutterMacOS'
 
   # Flutter.framework does not contain a i386 slice.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
