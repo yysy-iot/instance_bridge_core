@@ -9,7 +9,7 @@
   # 故在 darwin/ 下放 LICENSE 物理副本（与根目录 LICENSE 保持一致）。
 Pod::Spec.new do |s|
   s.name             = 'instance_bridge_core'
-  s.version          = '0.0.14'
+  s.version          = '0.0.15'
   s.summary          = 'Flutter plugin bridge.'
   s.description      = <<-DESC
 A plugin bridge for managing instances.

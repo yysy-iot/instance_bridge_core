@@ -6,7 +6,7 @@
 ## 构建与发布
 - **验证**：`pod lib lint darwin/instance_bridge_core.podspec`；SPM 语法验证：`cd darwin/instance_bridge_core && swift package dump-package`
 - **发布流程**：改 `s.version`（同步 `pubspec.yaml` 的 `version`）→ commit → 打同名 git tag（podspec 的 `s.source` 按 tag 拉取）→ push
-- 当前版本：0.0.14；历史 tag：0.0.1–0.0.13
+- 当前版本：0.0.15；历史 tag：0.0.1–0.0.14
 
 ## 插件化与共享源码（关键，0.0.13 起采用 sharedDarwinSource）
 - 根目录 `pubspec.yaml` 声明 `flutter.plugin`：ios/macos 均为 `pluginClass: InstanceBridgeCorePlugin` + `sharedDarwinSource: true`
@@ -19,7 +19,7 @@
 - podspec 位于 `darwin/instance_bridge_core.podspec`（`pluginPodspecPath` = `<path>/darwin/instance_bridge_core.podspec`）
 - **`source_files` 与 license file 必须物理位于 pod root（`darwin/`）内，不能用符号链接、不能用 `../` 跳出**：CocoaPods 的 `PathList#read_file_system` 用 `Dir.glob('**/*')` 预收集文件，Ruby 的 `**` **不递归进入符号链接目录**；trunk push 单独处理 spec，`'../LICENSE'` 这类跳出 pod root 的相对路径无法解析。踩过的坑：`ios/instance_bridge_core/Sources -> ../../Sources` + `source_files = '../Sources/...'` 导致收集到 0 个源文件，pod target 退化成无源码的 `PBXAggregateTarget`，宿主 `import instance_bridge_core` 失败；`s.license :file => '../LICENSE'` 导致 trunk push 报 "Unable to read the license file"。`darwin/` 下放 LICENSE 物理副本（与根目录保持一致）
 - `instance_bridge_core` 是 `get_instance_bridge` 的 pubspec 依赖（Flutter 插件），example 的 Podfile 由 `flutter_install_all_*_pods` 自动安装；**不要**在 Podfile 里手动 `pod 'instance_bridge_core', :git => ...`，否则报 "multiple dependencies with different sources"
-- 宿主插件 `get_instance_bridge` 的 podspec 通过 `s.dependency 'instance_bridge_core', '~> 0.0.14'` 约束版本
+- 宿主插件 `get_instance_bridge` 的 podspec 通过 `s.dependency 'instance_bridge_core', '~> 0.0.15'` 约束版本
 
 ## SPM 支持（关键）
 - 单一清单：`darwin/instance_bridge_core/Package.swift`（同时声明 `.iOS(.v13)` 与 `.macOS(.v10_15)`）。Flutter 工具链对 ios/macos 两个平台都会解析到 `darwin/<name>/Package.swift`

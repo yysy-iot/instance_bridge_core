@@ -1,3 +1,8 @@
+## 0.0.15
+
+- Swift 6 并发支持：`HashInstance` 和 `ObjInstance` 添加 `@unchecked Sendable` 标记
+- 解决 Swift 6 编译中继承这些基类的 Repository 类在 `@Sendable @MainActor` 闭包内捕获 `self` 的并发错误
+
 ## 0.0.14
 
 - 修复 CocoaPods trunk 发布：`darwin/` 下放 LICENSE 物理副本，podspec 的 license file 改为 pod root 内路径（`'../LICENSE'` 在 trunk 单独处理 spec 时无法解析）

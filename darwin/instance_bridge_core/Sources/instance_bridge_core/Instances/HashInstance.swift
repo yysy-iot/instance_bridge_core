@@ -6,7 +6,7 @@
 
 import Foundation
 
-open class HashInstance: Hashable {
+open class HashInstance: Hashable, @unchecked Sendable {
     
     public var hashCode: Int64
     
@@ -23,7 +23,7 @@ open class HashInstance: Hashable {
     }
 }
 
-open class ObjInstance: NSObject {
+open class ObjInstance: NSObject, @unchecked Sendable {
     
     public var hashCode: Int64
     
