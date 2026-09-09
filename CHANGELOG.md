@@ -1,3 +1,8 @@
+## 0.0.14
+
+- 修复 CocoaPods trunk 发布：`darwin/` 下放 LICENSE 物理副本，podspec 的 license file 改为 pod root 内路径（`'../LICENSE'` 在 trunk 单独处理 spec 时无法解析）
+- 版本号同步：podspec 与 pubspec 均为 0.0.14
+
 ## 0.0.13
 
 - 采用官方 `sharedDarwinSource` 结构：源码物理迁移到 `darwin/instance_bridge_core/Sources/`，消除符号链接

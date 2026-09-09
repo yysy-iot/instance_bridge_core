@@ -3,17 +3,19 @@
 # Run `pod lib lint darwin/instance_bridge_core.podspec` to validate before publishing.
 #
 # sharedDarwinSource：iOS 与 macOS 共用本目录下的同一份源码与 podspec。
-# 注意：source_files 必须位于 pod root（darwin/）内且为物理文件；
-# CocoaPods 用 Dir.glob('**/*') 预收集文件，`**` 不跟随符号链接目录。
+  # 注意：source_files 与 license file 必须位于 pod root（darwin/）内且为物理文件；
+  # CocoaPods 用 Dir.glob('**/*') 预收集文件，`**` 不跟随符号链接目录；
+  # trunk push 单独处理 spec，'../LICENSE' 这类跳出 pod root 的相对路径无法解析，
+  # 故在 darwin/ 下放 LICENSE 物理副本（与根目录 LICENSE 保持一致）。
 Pod::Spec.new do |s|
   s.name             = 'instance_bridge_core'
-  s.version          = '0.0.13'
+  s.version          = '0.0.14'
   s.summary          = 'Flutter plugin bridge.'
   s.description      = <<-DESC
 A plugin bridge for managing instances.
                        DESC
   s.homepage         = 'https://github.com/yysy-iot'
-  s.license          = { :type => 'MIT', :file => '../LICENSE' }
+  s.license          = { :type => 'MIT', :file => 'LICENSE' }
   s.author           = { 'YueYing Industry' => 'charlie@yueying-industry.com' }
 
   s.source           = { :git => 'https://github.com/yysy-iot/instance_bridge_core.git', :tag => s.version.to_s }
