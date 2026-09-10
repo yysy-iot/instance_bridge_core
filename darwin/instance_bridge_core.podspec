@@ -10,7 +10,7 @@
   # trunk push 单独处理 spec，'../LICENSE' 这类跳出 pod root 的相对路径无法解析。
 Pod::Spec.new do |s|
   s.name             = 'instance_bridge_core'
-  s.version          = '0.0.16'
+  s.version          = '0.0.17'
   s.summary          = 'Flutter plugin bridge.'
   s.description      = <<-DESC
 A plugin bridge for managing instances.

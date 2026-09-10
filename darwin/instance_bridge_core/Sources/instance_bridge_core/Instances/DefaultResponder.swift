@@ -20,7 +20,7 @@ public protocol DefaultResponder: FlutterResponder {
 public extension DefaultResponder {
     
     ///
-    func callMethod(_ method: String, _ arguments: Any?, result: @escaping (Any) -> Void, error: @escaping (Error) -> Void) {
+    func callMethod(_ method: String, _ arguments: Any?, result: @escaping @Sendable (Any) -> Void, error: @escaping @Sendable (Error) -> Void) {
         
         if let handler = self[method] {
             handler.callHandler(arguments, result, error)

@@ -10,6 +10,12 @@ import Flutter
 import FlutterMacOS
 #endif
 
+/// FlutterResult 非 @Sendable，但其闭包只被 Flutter 引擎回调一次，无并发风险。
+/// 包装为 @unchecked Sendable 供 @Sendable 闭包捕获。
+private struct SendableFlutterResult: @unchecked Sendable {
+    let closure: FlutterResult
+}
+
 public enum InstancesManager {
     
     private static var builderMap = [String: @MainActor (Int64, Any?) -> FlutterResponder]()
@@ -122,14 +128,15 @@ public enum InstancesManager {
             result(toFlutterFailure(FlutterRequestError.invalidObject))
             return
         }
+        let sendableResult = SendableFlutterResult(closure: result)
         instance.callMethod(components[3], call.arguments) {
             if $0 as? NSObject == FlutterMethodNotImplemented {
-                result(FlutterMethodNotImplemented)
+                sendableResult.closure(FlutterMethodNotImplemented)
             } else {
-                result($0)
+                sendableResult.closure($0)
             }
         } error: {
-            result(toFlutterFailure($0))
+            sendableResult.closure(toFlutterFailure($0))
         }
     }
     
@@ -143,7 +150,7 @@ public enum InstancesManager {
             result(FlutterMethodNotImplemented)
             return
         }
-        voidSuccess(result)()
+        result(0)
     }
     
     @MainActor
@@ -156,6 +163,6 @@ public enum InstancesManager {
             return
         }
         destroy(typeName, hash: hash)
-        voidSuccess(result)()
+        result(0)
     }
 }

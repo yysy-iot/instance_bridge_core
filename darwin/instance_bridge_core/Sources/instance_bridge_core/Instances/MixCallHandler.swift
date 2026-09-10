@@ -14,7 +14,7 @@ import FlutterMacOS
 
 public protocol AnyMixCallHandler {
     
-    func callHandler(_ arguments: Any?, _ success: @escaping (Any) -> Void, _ failure: @escaping (Error) -> Void)
+    func callHandler(_ arguments: Any?, _ success: @escaping @Sendable (Any) -> Void, _ failure: @escaping @Sendable (Error) -> Void)
     
     @available(iOS 13.0.0, *)
     @MainActor
@@ -188,8 +188,8 @@ public struct MixCallHandler<T, R>: AnyMixCallHandler {
     // MARK: - AnyMixCallHandler
     @MainActor
     private func _callHandler(_ arguments: Any?,
-                              _ success: @escaping (Any) -> Void,
-                              _ failure: @escaping (Error) -> Void) {
+                              _ success: @escaping @Sendable (Any) -> Void,
+                              _ failure: @escaping @Sendable (Error) -> Void) {
         do {
             let arguments = try castFrom(arguments)
             handler(arguments, success, failure)
@@ -198,7 +198,7 @@ public struct MixCallHandler<T, R>: AnyMixCallHandler {
         }
     }
     
-    public func callHandler(_ arguments: Any?, _ success: @escaping (Any) -> Void, _ failure: @escaping (any Error) -> Void) {
+    public func callHandler(_ arguments: Any?, _ success: @escaping @Sendable (Any) -> Void, _ failure: @escaping @Sendable (any Error) -> Void) {
         if #available(iOS 13.0, *), Thread.isMainThread {
             MainActor.assumeIsolated {
                 _callHandler(arguments, success, failure)
@@ -214,22 +214,15 @@ public struct MixCallHandler<T, R>: AnyMixCallHandler {
     @MainActor
     public func callHandler(_ arguments: Any?) async throws -> Any {
         try await withCheckedThrowingContinuation { continuation in
-            // 使用锁保护确保 continuation 只被 resume 一次，防止 handler 多次回调导致未定义行为
-            let lock = NSLock()
-            var hasResumed = false
-            
+            // 使用锁保护确保 continuation 只被 resume 一次，防止 handler 多次回调导致未定义行为。
+            // 用 @unchecked Sendable 引用类型承载 hasResumed，避免 @Sendable 闭包捕获可变 var。
+            let flag = ContinuationFlag()
             _callHandler(arguments, {
-                lock.lock()
-                defer { lock.unlock() }
-                if !hasResumed {
-                    hasResumed = true
+                flag.resumeOnce($0) {
                     continuation.resume(returning: $0)
                 }
             }, {
-                lock.lock()
-                defer { lock.unlock() }
-                if !hasResumed {
-                    hasResumed = true
+                flag.resumeOnce($0) {
                     continuation.resume(throwing: $0)
                 }
             })
@@ -237,9 +230,24 @@ public struct MixCallHandler<T, R>: AnyMixCallHandler {
     }
 }
 
+/// 锁保护的只执行一次标记，供 @Sendable 闭包安全捕获（避免捕获可变 var）。
+private final class ContinuationFlag: @unchecked Sendable {
+    private let lock = NSLock()
+    private var hasResumed = false
+
+    func resumeOnce<T>(_ value: T, _ body: (T) -> Void) {
+        lock.lock()
+        defer { lock.unlock() }
+        if !hasResumed {
+            hasResumed = true
+            body(value)
+        }
+    }
+}
+
 ///
-private func encodeResult<R: Encodable>(_ onResult: @escaping (Any?) -> Void,
-                                        _ onError: @escaping (Error) -> Void) -> (R?) -> Void {
+private func encodeResult<R: Encodable>(_ onResult: @escaping @Sendable (Any?) -> Void,
+                                        _ onError: @escaping @Sendable (Error) -> Void) -> @Sendable (R?) -> Void {
     {
         guard let value = $0 else {
             onResult($0)

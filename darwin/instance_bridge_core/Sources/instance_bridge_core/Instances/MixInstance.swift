@@ -23,7 +23,7 @@ public extension MixInstance {
     }
     
     ///
-    func callMethod(_ method: String, _ arguments: Any?, result: @escaping (Any) -> Void, error: @escaping (Error) -> Void) {
+    func callMethod(_ method: String, _ arguments: Any?, result: @escaping @Sendable (Any) -> Void, error: @escaping @Sendable (Error) -> Void) {
         if let handler = callHandler[method] {
             handler.callHandler(arguments, result, error)
         } else {

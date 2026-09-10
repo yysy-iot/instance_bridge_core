@@ -10,7 +10,7 @@ public protocol FlutterResponder: AnyObject {
     
     init(_ hashCode: Int64, _ arguments: Any?)
     
-    func callMethod(_ method: String, _ arguments: Any?, result: @escaping (Any) -> Void, error: @escaping (Error) -> Void)
+    func callMethod(_ method: String, _ arguments: Any?, result: @escaping @Sendable (Any) -> Void, error: @escaping @Sendable (Error) -> Void)
 }
 
 

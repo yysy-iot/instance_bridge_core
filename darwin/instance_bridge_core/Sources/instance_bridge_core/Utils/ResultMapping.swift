@@ -23,7 +23,7 @@ public func toFlutterFailure(_ error: Error) -> FlutterError {
 }
 
 
-public func voidSuccess(_ success: @escaping (Any) -> Void) -> () -> Void {
+public func voidSuccess(_ success: @escaping @Sendable (Any) -> Void) -> @Sendable () -> Void {
     {
         success(0)
     }
