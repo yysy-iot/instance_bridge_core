@@ -24,19 +24,19 @@ public protocol AnyMixCallHandler {
 ///
 public typealias CastFrom<T> = @Sendable (Any?) throws -> T?
 ///
-typealias AnyHandler<T> = @Sendable @MainActor (T?, @escaping (Any) -> Void, @escaping (Error) -> Void) -> Void
+typealias AnyHandler<T> = @Sendable @MainActor (T?, @escaping @Sendable (Any) -> Void, @escaping @Sendable (Error) -> Void) -> Void
 ///
-public typealias COOHandler<T, R> = @MainActor @Sendable(T?, @escaping (R?) -> Void, @escaping (Error) -> Void) -> Void
+public typealias COOHandler<T, R> = @MainActor @Sendable(T?, @escaping @Sendable (R?) -> Void, @escaping @Sendable (Error) -> Void) -> Void
 ///
-public typealias CIOHandler<T, R> = @MainActor @Sendable(T, @escaping (R?) -> Void, @escaping (Error) -> Void) -> Void
+public typealias CIOHandler<T, R> = @MainActor @Sendable(T, @escaping @Sendable (R?) -> Void, @escaping @Sendable (Error) -> Void) -> Void
 ///
-public typealias COVHandler<T> = @MainActor @Sendable (T?, @escaping () -> Void, @escaping (Error) -> Void) -> Void
+public typealias COVHandler<T> = @MainActor @Sendable (T?, @escaping @Sendable () -> Void, @escaping @Sendable (Error) -> Void) -> Void
 ///
-public typealias CIVHandler<T> = @MainActor @Sendable (T, @escaping () -> Void, @escaping (Error) -> Void) -> Void
+public typealias CIVHandler<T> = @MainActor @Sendable (T, @escaping @Sendable () -> Void, @escaping @Sendable (Error) -> Void) -> Void
 ///
-public typealias VOHandler<R> = @MainActor @Sendable (@escaping (R?) -> Void, @escaping (Error) -> Void) -> Void
+public typealias VOHandler<R> = @MainActor @Sendable (@escaping @Sendable (R?) -> Void, @escaping @Sendable (Error) -> Void) -> Void
 ///
-public typealias VVHandler = @MainActor @Sendable (@escaping () -> Void, @escaping (Error) -> Void) -> Void
+public typealias VVHandler = @MainActor @Sendable (@escaping @Sendable () -> Void, @escaping @Sendable (Error) -> Void) -> Void
 
 public struct MixCallHandler<T, R>: AnyMixCallHandler {
     
